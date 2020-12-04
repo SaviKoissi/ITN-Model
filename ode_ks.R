@@ -152,4 +152,61 @@ legend("topright", c("Rh11", "Rh12", "Rh13", "Rh14", "Rh21", "Rh22", "Rh23", "Rh
 #require(fast)#Fourier Amplitude Sensitivity Analysis
 # Latin hypercube sampling 
 require(lhs)
+h<-1000 # Number of points
+set.seed(1234567)
+lhs<-maximinLHS(h,12) # Simulate 
+# Well urbanized areas
+#Human hosts
+Lambda_h.min<-min(Lambda_h) #Recruitment rate of humans
+Lambda_h.max<-max(Lambda_h)
+mu_h.min<-min(mu_h)#Death rate of human
+mu_h.max<-max(mu_h)
+gamma_h.max<-0.0023#Recovery rate
+gamma_h.min<-0.0020
+sigma_h.min<-1/91.3125#Proportion of getting immune 
+sigma_h.max<-1/91
+beta_h.min<-0.42#Transmission rate from infectious human to mosquito
+beta_h.max<-0.5
+delta_h.min<-0.002#Disease induced-death
+delta_h.max<-0.003
+m.min<-1e-10 #Between patches migration
+m.max<-2*1e-10
+psi.max<-max(psi)#Proportion of ITN use 
+psi.min<-min(psi)
+#Mosquito vectors
+mu_v.min<-0.05#Death rate of mosquito
+mu_v.max<-0.07
+a.min<-0.5#Biting rate
+a.max<-0.7
+Lambda_v.min<-0.3/365#Recruitment/birth rate of mosquitoes
+Lambda_v.max<-0.5/365
+beta_v.min<-0.42#Transmission rate from infected mosquito to human
+beta_v.max<-0.5
 
+params.set<-cbind(
+  Lambda_h = lhs[,1]*(Lambda_h.max-Lambda_h.min)+Lambda_h.min,
+  mu_h = lhs[,2]*(mu_h.max-mu_h.min)+mu_h.min,
+  gamma_h = lhs[,3]*(gamma_h.max-gamma_h.min)+gamma_h.min, 
+  sigma_h = lhs[,4]*(sigma_h.max-sigma_h.min)+sigma_h.min,
+  beta_h = lhs[,5]*(beta_h.max-beta_h.min)+beta_h.min, 
+  delta_h = lhs[,6]*(delta_h.max-delta_h.min)+delta_h.min,
+  m = lhs[,7]*(m.max-m.min)+m.min, 
+  psi = lhs[,8]*(psi.max-psi.min)+psi.min,
+  mu_v = lhs[,9]*(mu_v.max-mu_v.min)+mu_v.min,
+  a = lhs[,10]*(a.max-a.min)+a.min,
+  Lambda_v = lhs[,11]*(Lambda_v.max-Lambda_v.min)+Lambda_v.min,
+  beta_v = lhs[,12]*(beta_v.max-beta_v.min)+beta_v.min
+)
+levels <- 15
+h2 <-250
+j<-1
+data<-data.frame(matrix(rep(NA, levels*h2*14),nrow=levels*h2))
+for(i in 1:h2){
+  for(t in t_range){
+    data[j,1:13]<-params2<-as.list(c(params.set[i,], T=T))
+    out2<-as.data.frame(ode(y = init, times = t_range, func = sir_si, parms = params2))
+    j <- j+1
+  }
+}
+names(data) <- c(names(params2),'malaria.size')
+save(data, file='malaria.Rdata')
