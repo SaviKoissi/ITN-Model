@@ -201,7 +201,13 @@ levels <- 15
 h2 <-250
 j<-1
 data<-data.frame(matrix(rep(NA, levels*h2*14),nrow=levels*h2))
-for(i in 1:h2){
+library(foreach)
+library(doParallel)
+cores=detectCores()
+cl <- makeCluster(cores[1]-1) #not to overload your computer
+registerDoParallel(cl)
+
+foreach(i=1:h2, .packages="deSolve") %dopar% {
   for(t in t_range){
     data[j,1:13]<-params2<-as.list(c(params.set[i,], T=T))
     out2<-as.data.frame(ode(y = init, times = t_range, func = sir_si, parms = params2))
