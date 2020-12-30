@@ -12,12 +12,12 @@ sigma_h<-matrix(c(1/91.3125,1/91.3125,1/91.3125,1/91.3125,1/91.3125,1/91.3125,1/
 beta_h<-matrix(c(0.42,0.42,0.42,0.42,0.42,0.42,0.42,0.42),2, 4,byrow=T)#Transmission rate from infectious human to mosquito
 delta_h<-matrix(c(0.001,0.001,0.001,0.001,0.001,0.001,0.001,0.001),2, 4,byrow=T)#Disease induced-death
 m<-matrix(c(1,1,1,1,1,1,1,1)*1e-10,nrow = 2, ncol= 4,byrow=T)#Between patches migration
-psi<-matrix(c(0.6,0.6,0.6,0.6,0.6,0.3,0.3,0.3), 2, 4,byrow=T)#Proportion of ITN use 
-#y<-matrix(c(0.6,0.6,0.6,0.6,0.6,0.3,0.3,0.3), 2, 4,byrow=T)#Possession of ITN use 
-#p<-matrix(c(0.8,0.8,0.8,0.8,0.5,0.5,0.5,0.5), 2, 4,byrow=T)#Use of ITN use
-#x<-matrix(c(1.62,1.62,1.62,1.62,1,1,1,1)*365, 2, 4,byrow=T)# Decay rate
-#library(tidyverse)
-#psi <- y[1,1] * p[1,1]* exp(-x[1,1] * t_range) %>% jitter(8)
+#psi<-matrix(c(0.6,0.6,0.6,0.6,0.6,0.3,0.3,0.3), 2, 4,byrow=T)#Proportion of ITN use 
+y<-matrix(c(0.6,0.6,0.6,0.6,0.6,0.3,0.3,0.3), 2, 4,byrow=T)#Possession of ITN use 
+p<-matrix(c(0.8,0.8,0.8,0.8,0.5,0.5,0.5,0.5), 2, 4,byrow=T)#Use of ITN use
+x<-matrix(c(1.62,1.62,1.62,1.62,1,1,1,1)*365, 2, 4,byrow=T)# Decay rate
+library(tidyverse)
+psi <- y[1,1] * p[1,1]* exp(-x[1,1] * t_range) #%>% jitter(8)
 
 #Mosquito vectors
 mu_v<-matrix(c(0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05),2, 4,byrow=T)#Death rate of mosquito
