@@ -12,12 +12,12 @@ sigma_h<-matrix(c(1/91.3125,1/91.3125,1/91.3125,1/91.3125,1/91.3125,1/91.3125,1/
 beta_h<-matrix(c(0.42,0.42,0.42,0.42,0.42,0.42,0.42,0.42),2, 4,byrow=T)#Transmission rate from infectious human to mosquito
 delta_h<-matrix(c(0.001,0.001,0.001,0.001,0.001,0.001,0.001,0.001),2, 4,byrow=T)#Disease induced-death
 m<-matrix(c(1,1,1,1,1,1,1,1)*1e-10,nrow = 2, ncol= 4,byrow=T)#Between patches migration
-#psi<-matrix(c(0.6,0.6,0.6,0.6,0.6,0.3,0.3,0.3), 2, 4,byrow=T)#Proportion of ITN use 
-y<-matrix(c(0.6,0.6,0.6,0.6,0.6,0.3,0.3,0.3), 2, 4,byrow=T)#Possession of ITN use 
-p<-matrix(c(0.8,0.8,0.8,0.8,0.5,0.5,0.5,0.5), 2, 4,byrow=T)#Use of ITN use
-x<-matrix(c(1.62,1.62,1.62,1.62,1,1,1,1)*365, 2, 4,byrow=T)# Decay rate
+psi<-matrix(c(0.6,0.6,0.6,0.6,0.6,0.3,0.3,0.3), 2, 4,byrow=T)#Proportion of ITN use 
+#y<-matrix(c(0.6,0.6,0.6,0.6,0.6,0.3,0.3,0.3), 2, 4,byrow=T)#Possession of ITN use 
+#p<-matrix(c(0.8,0.8,0.8,0.8,0.5,0.5,0.5,0.5), 2, 4,byrow=T)#Use of ITN use
+#x<-matrix(c(1.62,1.62,1.62,1.62,1,1,1,1)*365, 2, 4,byrow=T)# Decay rate
 library(tidyverse)
-psi <- y[1,1] * p[1,1]* exp(-x[1,1] * t_range) #%>% jitter(8)
+#psi <- y[1,1] * p[1,1]* exp(-x[1,1] * t_range) #%>% jitter(8)
 
 #Mosquito vectors
 mu_v<-matrix(c(0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05),2, 4,byrow=T)#Death rate of mosquito
@@ -113,11 +113,11 @@ r0<-function(parms){
      return(r0)
  }
 
-r0(params)
+as.numeric(r0(params))
 # Second scenario decade rate 
 x1<-c(0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6)
 x2<-c(1.62,1.62,1.62,1.62,1,1,1,1)*365
-b<-function(x1,x2){x1*exp(-x2*t_range)} # x1 represent the value of psi and x2 is either 1.62 or 1
+b<-function(x1,x2){x1*exp(-x2*365)} # x1 represent the value of psi and x2 is either 1.62 or 1
 psi<-matrix(c(b(x1[1],x2[1]),b(x1[2],x2[2]), b(x1[3],x2[3]),b(x1[4],x2[4]), b(x1[5],x2[5]), b(x1[6],x2[6]), b(x1[7],x2[7]), b(x1[8],x2[8]) ), 2, 4,byrow=T)#Proportion of ITN use 
 params<-list(Lambda_h=Lambda_h, Lambda_v=Lambda_v, beta_v=beta_v, beta_h=beta_h, sigma_h=sigma_h, gamma_h=gamma_h,delta_h=delta_h,mu_h=mu_h, mu_v=mu_v, psi=psi, a=a, m=m)
 init<- c(Sh=Sh, Ih=Ih, Rh=Rh, Sv=Sv, Iv=Iv)
@@ -159,7 +159,7 @@ legend("topright", c("Rh11", "Rh12", "Rh13", "Rh14", "Rh21", "Rh22", "Rh23", "Rh
 require(lhs)
 h<-1000 # Number of points
 set.seed(1234567)
-lhs<-maximinLHS(h,12) # Simulate 
+lhs<-maximinLHS(h,14) # Simulate 
 # Well urbanized areas
 #Human hosts
 Lambda_h.min<-min(Lambda_h) #Recruitment rate of humans
@@ -203,21 +203,33 @@ params.set<-cbind(
   beta_v = lhs[,12]*(beta_v.max-beta_v.min)+beta_v.min
 )
 levels <- 15
-h2 <-250
+#h2 <-250
 j<-1
-data<-data.frame(matrix(rep(NA, levels*h2*14),nrow=levels*h2))
+data<-data.frame(matrix(rep(NA, levels*h*21),nrow=levels*h))
 library(foreach)
 library(doParallel)
 cores=detectCores()
 cl <- makeCluster(cores[1]-1) #not to overload your computer
 registerDoParallel(cl)
 
-foreach(i=1:h2, .packages="deSolve") %dopar% {
-  for(t in t_range){
-    data[j,1:13]<-params2<-as.list(c(params.set[i,], T=T))
-    out2<-as.data.frame(ode(y = init, times = t_range, func = sir_si, parms = params2))
-    j <- j+1
+system.time(foreach(i=1:h, .packages="deSolve") %dopar% {
+  #for(i in 1:1) { 
+    for(t in 1:t_range){
+      params2<-as.list(c(params.set[i,], T=t))
+      data[j,1:13]<-params2
+      out2<-as.data.frame(ode(y = init, times = t_range, func = sir_si, parms = params2))
+      data[j,14:21] <-as.list(as.numeric(r0(out2)))
+      j <- j+1
+    }
   }
-}
-names(data) <- c(names(params2),'malaria.size')
+)
+names(data) <- c(names(params2),c("A1WU", "A1Sl","A2WU", "A2Sl","A3WU", "A3Sl", "A4WU", "A4Sl"))
 save(data, file='malaria.Rdata')
+
+
+
+
+library(sensitivity)
+ bonferroni.alpha <- 0.05/12
+ prcc <- pcc(data[,1:12], data[,14:21], nboot = 1000, rank=TRUE, conf=1-bonferroni.alpha)
+ save(prcc, file='prcc.Rdata')
