@@ -159,34 +159,34 @@ legend("topright", c("Rh11", "Rh12", "Rh13", "Rh14", "Rh21", "Rh22", "Rh23", "Rh
 require(lhs)
 h<-1000 # Number of points
 set.seed(1234567)
-lhs<-maximinLHS(h,14) # Simulate 
+lhs<-maximinLHS(h,12) # Simulate 
 # Well urbanized areas
 #Human hosts
 Lambda_h.min<-min(Lambda_h) #Recruitment rate of humans
-Lambda_h.max<-max(Lambda_h)
+Lambda_h.max<-1
 mu_h.min<-min(mu_h)#Death rate of human
-mu_h.max<-max(mu_h)
-gamma_h.max<-0.0023#Recovery rate
-gamma_h.min<-0.0020
+mu_h.max<-1
+gamma_h.min<-0.0023#Recovery rate
+gamma_h.max<-1
 sigma_h.min<-1/91.3125#Proportion of getting immune 
-sigma_h.max<-1/91
+sigma_h.max<-1/80
 beta_h.min<-0.42#Transmission rate from infectious human to mosquito
-beta_h.max<-0.5
+beta_h.max<-1
 delta_h.min<-0.002#Disease induced-death
-delta_h.max<-0.003
+delta_h.max<-0.05
 m.min<-1e-10 #Between patches migration
-m.max<-2*1e-10
-psi.max<-max(psi)#Proportion of ITN use 
+m.max<-2*1e-5
+psi.max<-0.8#Proportion of ITN use 
 psi.min<-min(psi)
 #Mosquito vectors
 mu_v.min<-0.05#Death rate of mosquito
-mu_v.max<-0.07
+mu_v.max<-0.1
 a.min<-0.5#Biting rate
-a.max<-0.7
+a.max<-0.9
 Lambda_v.min<-0.3/365#Recruitment/birth rate of mosquitoes
-Lambda_v.max<-0.5/365
+Lambda_v.max<-0.9/365
 beta_v.min<-0.42#Transmission rate from infected mosquito to human
-beta_v.max<-0.5
+beta_v.max<-0.7
 
 params.set<-cbind(
   Lambda_h = lhs[,1]*(Lambda_h.max-Lambda_h.min)+Lambda_h.min,
@@ -206,30 +206,34 @@ levels <- 15
 #h2 <-250
 j<-1
 data<-data.frame(matrix(rep(NA, levels*h*21),nrow=levels*h))
-library(foreach)
-library(doParallel)
-cores=detectCores()
-cl <- makeCluster(cores[1]-1) #not to overload your computer
-registerDoParallel(cl)
+#library(foreach)
+#library(doParallel)
+#cores=detectCores()
+#cl <- makeCluster(cores[1]-1) #not to overload your computer
+#registerDoParallel(cl)
 
-system.time(foreach(i=1:h, .packages="deSolve") %dopar% {
-  #for(i in 1:1) { 
+#system.time(foreach(i=1:h, .packages="deSolve") %dopar% {
+system.time(for(i in 1:h) { 
     for(t in 1:t_range){
       params2<-as.list(c(params.set[i,], T=t))
       data[j,1:13]<-params2
       out2<-as.data.frame(ode(y = init, times = t_range, func = sir_si, parms = params2))
       data[j,14:21] <-as.list(as.numeric(r0(out2)))
-      j <- j+1
-    }
+     }
   }
 )
 names(data) <- c(names(params2),c("A1WU", "A1Sl","A2WU", "A2Sl","A3WU", "A3Sl", "A4WU", "A4Sl"))
-save(data, file='malaria.Rdata')
-
-
+save(data, file='malaria0.Rdata')
+write.csv2(data, "C:/Users/ZEF/Desktop/MS3/RepN0.csv")
+#read.csv("C:/Users/ZEF/Desktop/MS3/RepN.csv")
+load('malaria0.Rdata')
+plot(data$T, data[,14], type='l', lwd=3, log='y',
+        xlab='Times',
+        ylab='R_0')
+points(data$T, data$A1WU, pch=19, cex=0.3, col='blue')
 
 
 library(sensitivity)
  bonferroni.alpha <- 0.05/12
  prcc <- pcc(data[,1:12], data[,14:21], nboot = 1000, rank=TRUE, conf=1-bonferroni.alpha)
- save(prcc, file='prcc.Rdata')
+ save(prcc, file='prcc0.Rdata')
