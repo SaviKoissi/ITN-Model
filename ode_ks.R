@@ -7,12 +7,12 @@ Lambda_h<-matrix(c(0.005369485,0.000001,0.000001,0.000001,0.005369485,0.000001,0
 #Lambda_h<-matrix(c(0.005369485,0.005369485,0.005369485,0.005369485,0.005369485,0.005369485,0.005369485,0.005369485), 2, 4,byrow=T, dimnames = list(c("WU","Sl"),c("A1", "A2","A3","A4"))) #Recruitment rate of humans
 #mu_h<-matrix(c(1/63.78,1/63.78,1/63.78,1/63.78,1/63.78,1/63.78,1/63.78,1/63.78)/365, 2, 4)#Death rate of human
 mu_h<-matrix(c(1/63.78,1/63.78,1/63.78,1/63.78,1/63.48,1/63.48,1/63.48,1/63.48)/365, 2, 4)#Death rate of human
-gamma_h<-matrix(c(0.0023,0.0023,0.0023,0.0023,0.0023,0.0023,0.0023,0.0023), 2, 4,byrow=T)#Recovery rate
+gamma_h<-matrix(c(0.00274,0.00274,0.00274,0.00274,0.00274,0.00274,0.00274,0.00274), 2, 4,byrow=T)#Recovery rate [Ref Chitnis]
 sigma_h<-matrix(c(1/91.3125,1/91.3125,1/91.3125,1/91.3125,1/91.3125,1/91.3125,1/91.3125,1/91.3125), 2, 4,byrow=T)#Proportion of getting immune 
-beta_h<-matrix(c(0.42,0.42,0.42,0.42,0.42,0.42,0.42,0.42),2, 4,byrow=T)#Transmission rate from infectious human to mosquito
+beta_h<-matrix(c(0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24),2, 4,byrow=T)#Transmission rate from infectious human to mosquito [Ref Chitnis]
 delta_h<-matrix(c(0.001,0.001,0.001,0.001,0.001,0.001,0.001,0.001),2, 4,byrow=T)#Disease induced-death
-m<-matrix(c(1,1,1,1,1,1,1,1)*1e-10,nrow = 2, ncol= 4,byrow=T)#Between patches migration
-psi<-matrix(c(0.6,0.6,0.6,0.6,0.6,0.3,0.3,0.3), 2, 4,byrow=T)#Proportion of ITN use 
+m<-matrix(c(1,1,1,1,1,1,1,1)*1e-5,nrow = 2, ncol= 4,byrow=T)#Between patches migration
+psi<-matrix(c(0.6,0.6,0.6,0.6,0.5,0.2,0.1,0.3), 2, 4,byrow=T)#Proportion of ITN use 
 #y<-matrix(c(0.6,0.6,0.6,0.6,0.6,0.3,0.3,0.3), 2, 4,byrow=T)#Possession of ITN use 
 #p<-matrix(c(0.8,0.8,0.8,0.8,0.5,0.5,0.5,0.5), 2, 4,byrow=T)#Use of ITN use
 #x<-matrix(c(1.62,1.62,1.62,1.62,1,1,1,1)*365, 2, 4,byrow=T)# Decay rate
@@ -20,24 +20,35 @@ library(tidyverse)
 #psi <- y[1,1] * p[1,1]* exp(-x[1,1] * t_range) #%>% jitter(8)
 
 #Mosquito vectors
-mu_v<-matrix(c(0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05),2, 4,byrow=T)#Death rate of mosquito
-a<-matrix(c(0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5),2, 4,byrow=T)#Biting rate
-Lambda_v<-matrix(c(0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3)/365, 2, 4,byrow=T)#Recruitment/birth rate of mosquitoes
-beta_v<-matrix(c(0.42,0.42,0.42,0.42,0.42,0.42,0.42,0.42), 2, 4,byrow=T)#Transmission rate from infected mosquito to human
+mu_v<-matrix(c(0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1),2, 4,byrow=T)#Death rate of mosquito [Ref CDC]
+a<-matrix(c(0.35,0.35,0.35,0.35,0.35,0.35,0.35,0.35),2, 4,byrow=T)#Biting rate [Ref CDC]
+Lambda_v<-matrix(c(0.3,0.3,0.3,0.3,0.5,0.5,0.5,0.5)/365, 2, 4,byrow=T)#Recruitment/birth rate of mosquitoes
+beta_v<-matrix(c(0.024,0.024,0.024,0.024,0.024,0.024,0.024,0.024), 2, 4,byrow=T)#Transmission rate from infected mosquito to human [Ref Chitnis]
 
-
-params<-list(Lambda_h=Lambda_h, Lambda_v=Lambda_v, beta_v=beta_v, beta_h=beta_h, sigma_h=sigma_h, gamma_h=gamma_h,delta_h=delta_h,mu_h=mu_h, mu_v=mu_v, psi=psi, a=a, m=m)
+#beta_v<-parms[12]
+#Lambda_v<-parms[11]
+#a<-parms[10]
+#mu_v<-parms[9]
+#psi<-parms[8]
+#m<-parms[7]
+#delta_h<-parms[6]
+#beta_h<-parms[5]
+#gamma_h<-parms[3]
+#mu_h<-parms[2]
+#Lambda_h<-parms[1]
+psi<-matrix(c(0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6), 2, 4,byrow=T)#Proportion of ITN use 
+params<-list(Lambda_h=Lambda_h,mu_h=mu_h, gamma_h=gamma_h, beta_h=beta_h, sigma_h=sigma_h, delta_h=delta_h, m=m, psi=psi, mu_v=mu_v, a=a, Lambda_v=Lambda_v, beta_v=beta_v)
 #Variables
 #Initial conditions at DFE
 Sh<-matrix(c(1250,1250,1250,1250,1250,1250,1250,1250),2,4,byrow=T,dimnames = list(c("WU","Sl"),c("A1", "A2","A3","A4")))#Initial value of susceptible human
 Rh<-matrix(c(100, 100, 100, 100,100, 100, 100, 100),2,4,byrow=T)#Initial value of recovered human
 Ih<-matrix(c(300,300,300,300,600,600,600,600),2,4,byrow=T)#Initial value of infected human
-Sv<-matrix(c(1000,1000,1000,1000,1500,1500,1500,1500),2,4,byrow=T)
+Sv<-matrix(c(1000,1000,1000,1000,1000,1000,1000,1000),2,4,byrow=T)
 Iv<-matrix(c(100,100,100,100,160,160,160,160),2,4,byrow=T)
 
 # Constructing time vector
 t_start<-0 #Start
-t_end<-(1825)-1 # End 
+t_end<-(1095)-1 # End 
 t_inc<-.2
 t_range<-seq(t_start,t_end+t_inc, t_inc)
 # Create a function Sir_si for the differential equations
@@ -80,12 +91,12 @@ View(out)
  # A general concern about the plot they are all straight lines plus infected number are negative look like something is wrong
 matplot(x = out[,1], y = out[,2:9], type = "l",
         xlab = "Time", ylab = "Number of people", main = "Susceptible by age group",
-        lwd = 1, lty = 1, bty = "l", col = 1:8)
+        lwd = 2, lty = 1, bty = "l", col = 1:8)
 legend("topright", c("Sh11", "Sh12", "Sh13", "Sh14", "Sh21", "Sh22", "Sh23", "Sh24"), pch = 1, col = 1:8, bty = "n")
 
 matplot(x = out[,1], y = out[,10:17], type = "l",
         xlab = "Time", ylab = "Number of people", main = "Infected by age group",
-        lwd = 1, lty = 1, bty = "l", col = 1:8)
+        lwd = 2, lty = 1, bty = "l", col = 1:8)
 legend("topright", c("Ih11", "Ih12", "Ih13", "Ih14", "Ih21", "Ih22", "Ih23", "Ih24"), pch = 1, col = 1:8, bty = "n")
 
 matplot(x = out[,1], y = out[,18:25], type = "l",
@@ -104,20 +115,34 @@ legend("topright", c("Rh11", "Rh12", "Rh13", "Rh14", "Rh21", "Rh22", "Rh23", "Rh
 
  #Compute the reproductive rate per age group within patches
 #NGM method
+
+#beta_v<-parms[12]
+#Lambda_v<-parms[11]
+#a<-parms[10]
+#mu_v<-parms[9]
+#psi<-parms[8]
+#m<-parms[7]
+#delta_h<-parms[6]
+#beta_h<-parms[5]
+#gamma_h<-parms[3]
+#mu_h<-parms[2]
+#Lambda_h<-parms[1]
 r0<-function(parms){
-  wf<-Lambda_v*beta_v*a*(1-psi)
-  th<-(mu_v+a*psi)^2
-  pg<-beta_h*a*(1-psi)*(mu_h-m)
-  kt<-Lambda_h*(gamma_h+mu_h+sigma_h)
+  wf<-unlist(parms[11])*unlist(parms[12])*unlist(parms[10])*(1-unlist(parms[8]))
+  th<-(unlist(parms[9])+unlist(parms[10])*unlist(parms[8]))^2
+  pg<-unlist(parms[5])*unlist(parms[10])*(1-unlist(parms[8]))*(unlist(parms[2])-unlist(parms[7]))
+  kt<-unlist(parms[1])*(unlist(parms[3])+unlist(parms[2])+unlist(parms[6]))
   r0<-sqrt((wf*pg)/(th*kt))
-     return(r0)
+  #r0<-(wf*pg)/(th*kt)
+  return(r0)
  }
 
-as.numeric(r0(params))
+r0(unname(params))
 # Second scenario decade rate 
 x1<-c(0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6)
+psi<-c(0.6,0.6,0.6,0.6,0.6,0.6,0.6,0.6)
 x2<-c(1.62,1.62,1.62,1.62,1,1,1,1)*365
-b<-function(x1,x2){x1*exp(-x2*365)} # x1 represent the value of psi and x2 is either 1.62 or 1
+b<-function(x1,x2){x1*exp(-x2*1095)} # x1 represent the value of psi and x2 is either 1.62 or 1
 psi<-matrix(c(b(x1[1],x2[1]),b(x1[2],x2[2]), b(x1[3],x2[3]),b(x1[4],x2[4]), b(x1[5],x2[5]), b(x1[6],x2[6]), b(x1[7],x2[7]), b(x1[8],x2[8]) ), 2, 4,byrow=T)#Proportion of ITN use 
 params<-list(Lambda_h=Lambda_h, Lambda_v=Lambda_v, beta_v=beta_v, beta_h=beta_h, sigma_h=sigma_h, gamma_h=gamma_h,delta_h=delta_h,mu_h=mu_h, mu_v=mu_v, psi=psi, a=a, m=m)
 init<- c(Sh=Sh, Ih=Ih, Rh=Rh, Sv=Sv, Iv=Iv)
@@ -157,7 +182,8 @@ legend("topright", c("Rh11", "Rh12", "Rh13", "Rh14", "Rh21", "Rh22", "Rh23", "Rh
 #require(fast)#Fourier Amplitude Sensitivity Analysis
 # Latin hypercube sampling 
 require(lhs)
-h<-1000 # Number of points
+h<-5
+  1000 # Number of points
 set.seed(1234567)
 lhs<-maximinLHS(h,12) # Simulate 
 # Well urbanized areas
@@ -169,13 +195,13 @@ mu_h.max<-1
 gamma_h.min<-0.0023#Recovery rate
 gamma_h.max<-1
 sigma_h.min<-1/91.3125#Proportion of getting immune 
-sigma_h.max<-1/80
+sigma_h.max<-1/60
 beta_h.min<-0.42#Transmission rate from infectious human to mosquito
 beta_h.max<-1
 delta_h.min<-0.002#Disease induced-death
 delta_h.max<-0.05
 m.min<-1e-10 #Between patches migration
-m.max<-2*1e-5
+m.max<-2*1e-2
 psi.max<-0.8#Proportion of ITN use 
 psi.min<-min(psi)
 #Mosquito vectors
@@ -184,7 +210,7 @@ mu_v.max<-0.1
 a.min<-0.5#Biting rate
 a.max<-0.9
 Lambda_v.min<-0.3/365#Recruitment/birth rate of mosquitoes
-Lambda_v.max<-0.9/365
+Lambda_v.max<-5/365
 beta_v.min<-0.42#Transmission rate from infected mosquito to human
 beta_v.max<-0.7
 
@@ -202,10 +228,12 @@ params.set<-cbind(
   Lambda_v = lhs[,11]*(Lambda_v.max-Lambda_v.min)+Lambda_v.min,
   beta_v = lhs[,12]*(beta_v.max-beta_v.min)+beta_v.min
 )
-levels <- 15
+lhs*(sapply(params,max)-sapply(params,min))+sapply(params,min)
+
+levels <- length(t_range)
 #h2 <-250
 j<-1
-data<-data.frame(matrix(rep(NA, levels*h*21),nrow=levels*h))
+data<-data.frame(matrix(rep(NA, levels*h*20),nrow=levels*h))
 #library(foreach)
 #library(doParallel)
 #cores=detectCores()
@@ -213,13 +241,16 @@ data<-data.frame(matrix(rep(NA, levels*h*21),nrow=levels*h))
 #registerDoParallel(cl)
 
 #system.time(foreach(i=1:h, .packages="deSolve") %dopar% {
+h<-2
+#params2<-list()
 system.time(for(i in 1:h) { 
-    for(t in 1:t_range){
-      params2<-as.list(c(params.set[i,], T=t))
-      data[j,1:13]<-params2
-      out2<-as.data.frame(ode(y = init, times = t_range, func = sir_si, parms = params2))
-      data[j,14:21] <-as.list(as.numeric(r0(out2)))
-     }
+   # for(j in 1:nrow(data)){
+      params2<-as.list(c(params.set[i,]))
+      data[j,1:12]<-params2
+      #out2<-as.data.frame(ode(y = init, times = t_range, func = sir_si, parms = params2))
+      data[j,13] <-as.numeric(r0(unname(unlist(params2))))
+      j <- j+1
+     #}
   }
 )
 names(data) <- c(names(params2),c("A1WU", "A1Sl","A2WU", "A2Sl","A3WU", "A3Sl", "A4WU", "A4Sl"))
@@ -227,7 +258,7 @@ save(data, file='malaria0.Rdata')
 write.csv2(data, "C:/Users/ZEF/Desktop/MS3/RepN0.csv")
 #read.csv("C:/Users/ZEF/Desktop/MS3/RepN.csv")
 load('malaria0.Rdata')
-plot(data$T, data[,14], type='l', lwd=3, log='y',
+plot(data$T, data[,15], type='l', lwd=3, log='y',
         xlab='Times',
         ylab='R_0')
 points(data$T, data$A1WU, pch=19, cex=0.3, col='blue')
