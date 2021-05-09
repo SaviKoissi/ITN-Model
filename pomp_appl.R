@@ -147,7 +147,7 @@ malSIRSI %>%
 
 plot(pf)
 
-fixed_params <- c(N=5298358, mu_h=1/(63*365))
+fixed_params <- c(nh=5298358, mu_h=1/(63*365))
 
 # Parameter estimation
 
@@ -217,11 +217,32 @@ readRDS(file = "mal_params.rds")%>%
 
 # Searching the MLE
 
+set.seed(12347)
+runif_design(
+  lower = c(beta_v = 0.024, beta_h = 0.024, a = 0.35, gamma_h = 0.00274, rho = 0.1, eta = 0.001,
+             mu_h = 1/(63*365), delta_h = 0.0003454), 
+  upper = c(beta_v = 0.9, beta_h = 0.1, a = 1, gamma_h = 0.274, rho = 0.9, eta = 0.4,
+            mu_h = 0.1, delta_h = 0.3454),
+  nseq = 1000
+) -> guesses
 
+mf1 <- mifs_local[[1]]
 
-
-
-
+foreach(guess=iter(guesses,"row"), .combine=rbind) %dopar% {
+  library(pomp)
+  library(tidyverse)
+  mf1 %>%
+    mif2(params=c(unlist(guess),fixed_params)) %>%
+    mif2(Nmif=100) -> mf
+  replicate(
+    10,
+    mf %>% 
+      pfilter(Np=100000) %>% 
+      logLik()) %>%
+    logmeanexp(se=TRUE) -> ll
+  mf %>% coef() %>% bind_rows() %>%
+    bind_cols(loglik=ll[1],loglik.se=ll[2])
+} -> results
 
 
 
