@@ -39,7 +39,7 @@ dt<-data %>%
                   ) %>%
   group_by(Region, MonthYear, Age) %>%
   mutate(Infected = sum(value, na.rm = TRUE)) %>%
-  select(-c(1, 3, 5:7)) %>% 
+  select(-c(1, 3, 5:7)) 
   
   dt %>% 
     ggplot(aes(x = MonthYear, y= Infected, group = Age))+
@@ -243,6 +243,31 @@ foreach(guess=iter(guesses,"row"), .combine=rbind) %dopar% {
   mf %>% coef() %>% bind_rows() %>%
     bind_cols(loglik=ll[1],loglik.se=ll[2])
 } -> results
+
+readRDS(file = "mal_params.rds") %>%
+  filter(loglik>max(loglik)-50) %>%
+  bind_rows(guesses) %>%
+  mutate(type=if_else(is.na(loglik),"guess","result")) %>%
+  arrange(type) -> all
+
+
+pairs(~loglik + beta_h +eta + rho, data = all, 
+      col=ifelse(all$type=="guess",grey(0.5),"red"),pch=16)
+
+all %>%
+  filter(type=="result") %>%
+  filter(loglik>max(loglik)-10) %>%
+  ggplot(aes(x=eta,y=loglik))+
+  geom_point()+
+  labs(
+    x=expression("eta"),
+    title="poor man's profile likelihood"
+  )
+
+readRDS(file = "mal_params.rds")  %>%
+  filter(loglik>max(loglik)-20,loglik.se<2) %>%
+  sapply(range) -> box
+
 
 
 
